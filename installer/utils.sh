@@ -190,16 +190,19 @@ fetch_file() {
     url="$1"
     output="$2"
 
-    # Try direct download (prefer curl - more likely to have SSL on routers)
     if command_exists curl; then
         if curl -sfL --max-time 10 -o "$output" "$url" 2>/dev/null; then
             return 0
         fi
-    elif command_exists wget; then
+    fi
+
+    if command_exists wget; then
         if wget -q --timeout=10 -O "$output" "$url" 2>/dev/null; then
             return 0
         fi
-    else
+    fi
+
+    if ! command_exists curl && ! command_exists wget; then
         print_error "Neither curl nor wget found"
         return 1
     fi
@@ -212,7 +215,8 @@ fetch_file() {
             if curl -sfL --max-time 15 -o "$output" "$proxy_url" 2>/dev/null; then
                 return 0
             fi
-        elif command_exists wget; then
+        fi
+        if command_exists wget; then
             if wget -q --timeout=15 -O "$output" "$proxy_url" 2>/dev/null; then
                 return 0
             fi
